@@ -1,0 +1,63 @@
+{
+  "name": "pennywise",
+  "version": "0.1.0",
+  "description": "Exact, zero-dependency money math for JavaScript & TypeScript. BigInt minor units mean no floating-point errors; allocate/split never lose a cent. Works in Node, Deno, Bun and the browser.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "money",
+    "currency",
+    "decimal",
+    "bigint",
+    "exact",
+    "finance",
+    "fintech",
+    "allocate",
+    "rounding",
+    "dinero",
+    "price",
+    "monetary",
+    "zero-dependency"
+  ],
+  "author": "didrod205 (https://github.com/didrod205)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/didrod205/pennywise.git"
+  },
+  "bugs": {
+    "url": "https://github.com/didrod205/pennywise/issues"
+  },
+  "homepage": "https://github.com/didrod205/pennywise#readme",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.8",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
