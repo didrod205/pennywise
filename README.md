@@ -60,6 +60,22 @@ import { Money } from "pennywise";        // ESM / TypeScript
 const { Money } = require("pennywise");   // CommonJS
 ```
 
+## CLI
+
+Exact money math in your terminal (or shell scripts) — no install needed:
+
+```bash
+npx pennywise tax 80 8.25            # tax: 6.60 USD / total: 86.60 USD
+npx pennywise tip 64 18              # tip: 11.52 USD / total: 75.52 USD
+npx pennywise split 100 3            # 33.34 / 33.33 / 33.33  (sums back to 100)
+npx pennywise add 19.99 5.01         # 25.00 USD
+npx pennywise format 1234.5 -c EUR --locale de-DE   # 1.234,50 €
+```
+
+Commands: `add` `sub` `mul` `div` `tax` `tip` `discount` `split` `allocate`
+`format`. Options: `-c/--currency` (sets decimal places — JPY=0, etc.),
+`--locale`, `--round`. Results are exact and never lose a cent.
+
 ## Usage
 
 ### Creating money
@@ -79,8 +95,21 @@ const price = Money.of("100.00", "USD");
 price.add(Money.of("8.25", "USD"));     // $108.25
 price.subtract(Money.of("10", "USD"));  // $90.00
 price.multiply(3);                      // $300.00
-price.multiply("1.0825");               // $108.25  (e.g. tax)
+price.divide(3);                        // $33.33  (rounded; use split() to be exact)
 sum([a, b, c]);                         // add a whole list
+```
+
+### Tax, tips & discounts
+
+```ts
+const bill = Money.of("80", "USD");
+bill.percentage(8.25);          // $6.60   — 8.25% of the bill
+bill.addPercentage(20);         // $96.00  — add a 20% tip
+bill.subtractPercentage(15);    // $68.00  — take 15% off
+
+// Bounds
+a.min(b); a.max(b);             // pick the smaller / larger
+total.clamp(floor, cap);        // keep within a range
 ```
 
 ### Splitting without losing money
@@ -125,8 +154,10 @@ Money.fromJSON(JSON.parse(json));          // back to a Money
 | `Money.ofMinor(units, currency, opts?)` | From minor units (cents). |
 | `Money.fromJSON(json)` | Rebuild from `toJSON` output. |
 | `.add(m)` / `.subtract(m)` | Exact addition/subtraction (same currency). |
-| `.multiply(factor, opts?)` | Multiply by a count or rate, with rounding. |
+| `.multiply(factor, opts?)` / `.divide(divisor, opts?)` | Scale by a count or rate, with rounding. |
+| `.percentage(p)` / `.addPercentage(p)` / `.subtractPercentage(p)` | Tax, tips, discounts. |
 | `.allocate(ratios)` / `.split(n)` | Distribute with no lost units. |
+| `.min(m)` / `.max(m)` / `.clamp(lo, hi)` | Bounds. |
 | `.compare(m)` / `.equals` / `.greaterThan` / … | Value comparison. |
 | `.negate()` / `.absolute()` | Sign helpers. |
 | `.isZero()` / `.isPositive()` / `.isNegative()` | Predicates. |

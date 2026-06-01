@@ -128,3 +128,57 @@ describe("formatting & serialization", () => {
     expect(Money.of("19.99", "USD").toString()).toBe("19.99 USD");
   });
 });
+
+describe("divide", () => {
+  it("divides by an integer with banker's rounding", () => {
+    expect(Money.of("100", "USD").divide(3).toDecimalString()).toBe("33.33");
+    expect(Money.of("10", "USD").divide(4).toDecimalString()).toBe("2.50");
+  });
+
+  it("divides by a decimal divisor", () => {
+    expect(Money.of("100", "USD").divide("2.5").toDecimalString()).toBe("40.00");
+  });
+
+  it("works for zero-decimal currencies", () => {
+    expect(Money.of("1000", "JPY").divide(3).toDecimalString()).toBe("333");
+  });
+
+  it("throws on division by zero", () => {
+    expect(() => Money.of("1", "USD").divide(0)).toThrow(/division by zero/);
+    expect(() => Money.of("1", "USD").divide(0n)).toThrow(/division by zero/);
+  });
+});
+
+describe("percentage", () => {
+  it("takes a percentage of an amount", () => {
+    expect(Money.of("80", "USD").percentage(8.25).toDecimalString()).toBe("6.60");
+    expect(Money.of("200", "USD").percentage("10").toDecimalString()).toBe("20.00");
+    expect(Money.of("50", "USD").percentage(0).toDecimalString()).toBe("0.00");
+  });
+
+  it("adds and subtracts a percentage (tip / discount)", () => {
+    expect(Money.of("80", "USD").addPercentage(20).toDecimalString()).toBe("96.00");
+    expect(Money.of("100", "USD").subtractPercentage(15).toDecimalString()).toBe("85.00");
+  });
+
+  it("handles fractional percentages exactly", () => {
+    expect(Money.of("1000", "USD").percentage("2.5").toDecimalString()).toBe("25.00");
+  });
+});
+
+describe("min / max / clamp", () => {
+  const a = Money.of("3", "USD");
+  const b = Money.of("5", "USD");
+  it("picks the smaller / larger", () => {
+    expect(a.min(b).equals(a)).toBe(true);
+    expect(a.max(b).equals(b)).toBe(true);
+  });
+  it("clamps into a range", () => {
+    expect(Money.of("12", "USD").clamp(a, Money.of("10", "USD")).toDecimalString()).toBe("10.00");
+    expect(Money.of("1", "USD").clamp(a, b).toDecimalString()).toBe("3.00");
+    expect(Money.of("4", "USD").clamp(a, b).toDecimalString()).toBe("4.00");
+  });
+  it("rejects cross-currency comparison", () => {
+    expect(() => a.min(Money.of("1", "EUR"))).toThrow(CurrencyMismatchError);
+  });
+});

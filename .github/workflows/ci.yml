@@ -23,3 +23,6 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # Smoke-test the built CLI bin.
+      - run: node dist/cli.js --version
+      - run: node dist/cli.js split 100 3

@@ -6,6 +6,19 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0]
+
+### Added
+
+- `Money.divide(divisor, opts?)` — scalar division with rounding (throws on
+  division by zero).
+- `Money.percentage(p)`, `.addPercentage(p)`, `.subtractPercentage(p)` — tax,
+  tips and discounts, computed exactly.
+- `Money.min(m)`, `.max(m)`, `.clamp(low, high)` — bounds helpers.
+- **Command-line interface** (`pennywise` bin), zero-dependency: `add`, `sub`,
+  `mul`, `div`, `tax`, `tip`, `discount`, `split`, `allocate`, `format`, with
+  `--currency`, `--locale` and `--round`. Exact, never loses a cent.
+
 ## [0.1.0]
 
 ### Added
@@ -23,5 +36,6 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `sum` helper for lists.
 - Ships ESM + CJS with full TypeScript types.
 
-[Unreleased]: https://github.com/didrod205/pennywise/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/didrod205/pennywise/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/didrod205/pennywise/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/didrod205/pennywise/releases/tag/v0.1.0

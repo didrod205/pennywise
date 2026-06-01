@@ -1,7 +1,7 @@
 {
   "name": "pennywise",
-  "version": "0.1.0",
-  "description": "Exact, zero-dependency money math for JavaScript & TypeScript. BigInt minor units mean no floating-point errors; allocate/split never lose a cent. Works in Node, Deno, Bun and the browser.",
+  "version": "0.2.0",
+  "description": "Exact, zero-dependency money math for JavaScript & TypeScript. BigInt minor units mean no floating-point errors; allocate/split never lose a cent. Divide, percentages (tax/tip/discount), min/max, plus a CLI. Node, Deno, Bun & browser.",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -42,7 +42,8 @@
     "dinero",
     "price",
     "monetary",
-    "zero-dependency"
+    "zero-dependency",
+    "cli"
   ],
   "author": "didrod205 (https://github.com/didrod205)",
   "license": "MIT",
@@ -55,9 +56,13 @@
   },
   "homepage": "https://github.com/didrod205/pennywise#readme",
   "devDependencies": {
+    "@types/node": "^22.19.19",
     "@vitest/coverage-v8": "^2.1.8",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
+  },
+  "bin": {
+    "pennywise": "./dist/cli.js"
   }
 }

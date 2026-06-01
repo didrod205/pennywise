@@ -118,6 +118,26 @@ function toWeights(ratios: ReadonlyArray<number | bigint | string>): bigint[] {
   return parsed.map(({ int, frac }) => BigInt(int + frac.padEnd(maxFrac, "0")));
 }
 
+/** Turn a percentage (e.g. `8.25` or `"8.25"`) into a decimal rate string ("0.0825"). */
+function toRate(percent: number | string | bigint, per: "100"): string {
+  const decimal =
+    typeof percent === "bigint"
+      ? percent.toString()
+      : typeof percent === "number"
+        ? numberToDecimalString(percent)
+        : percent.trim();
+  const m = /^([+-]?)(\d+)(?:\.(\d+))?$/.exec(decimal);
+  if (!m) throw new TypeError(`pennywise: "${decimal}" is not a valid percentage`);
+  const sign = m[1] === "-" ? "-" : "";
+  const digits = (m[2] as string) + (m[3] ?? "");
+  const fracLen = (m[3] ?? "").length + per.length - 1; // /100 shifts the point 2 places
+  const padded = digits.padStart(fracLen + 1, "0");
+  const cut = padded.length - fracLen;
+  const intPart = padded.slice(0, cut) || "0";
+  const fracPart = padded.slice(cut);
+  return fracPart ? `${sign}${intPart}.${fracPart}` : `${sign}${intPart}`;
+}
+
 export interface MoneyOptions {
   /** Override the currency's default number of decimal places. */
   scale?: number;
@@ -243,6 +263,70 @@ export class Money {
     const fNum = sign * BigInt((m[2] as string) + frac);
     const fDen = pow10(frac.length);
     return new Money(roundDiv(this.amount * fNum, fDen, round), this.currency, this.scale);
+  }
+
+  /**
+   * Divide by a scalar divisor, rounding the result back to this value's scale.
+   * Note: dividing money loses precision — to split a bill exactly without
+   * losing a cent, use {@link split} or {@link allocate} instead.
+   *
+   * ```ts
+   * Money.of("100", "USD").divide(3); // $33.33 (rounded; not exact thirds)
+   * ```
+   */
+  divide(divisor: number | string | bigint, options: { round?: RoundingMode } = {}): Money {
+    const round = options.round ?? "half-even";
+    if (typeof divisor === "bigint") {
+      if (divisor === 0n) throw new RangeError("pennywise: division by zero");
+      return new Money(roundDiv(this.amount, divisor, round), this.currency, this.scale);
+    }
+    const decimal = typeof divisor === "number" ? numberToDecimalString(divisor) : divisor;
+    const m = /^([+-]?)(\d+)(?:\.(\d+))?$/.exec(decimal.trim());
+    if (!m) throw new TypeError(`pennywise: "${decimal}" is not a valid divisor`);
+    const sign = m[1] === "-" ? -1n : 1n;
+    const frac = m[3] ?? "";
+    const dNum = sign * BigInt((m[2] as string) + frac);
+    const dDen = pow10(frac.length);
+    if (dNum === 0n) throw new RangeError("pennywise: division by zero");
+    // amount / (dNum/dDen) = amount * dDen / dNum
+    return new Money(roundDiv(this.amount * dDen, dNum, round), this.currency, this.scale);
+  }
+
+  /**
+   * Take a percentage of this amount (tax, tip, discount, interest…).
+   *
+   * ```ts
+   * Money.of("80", "USD").percentage(8.25);  // $6.60  (8.25% of $80)
+   * Money.of("80", "USD").addPercentage(20); // $96.00 (add a 20% tip)
+   * ```
+   */
+  percentage(percent: number | string | bigint, options: { round?: RoundingMode } = {}): Money {
+    return this.multiply(toRate(percent, "100"), options);
+  }
+
+  /** This amount plus `percent`% of it (e.g. add tax/tip). */
+  addPercentage(percent: number | string | bigint, options: { round?: RoundingMode } = {}): Money {
+    return this.add(this.percentage(percent, options));
+  }
+
+  /** This amount minus `percent`% of it (e.g. apply a discount). */
+  subtractPercentage(percent: number | string | bigint, options: { round?: RoundingMode } = {}): Money {
+    return this.subtract(this.percentage(percent, options));
+  }
+
+  /** The smaller of this and `other` (currencies must match). */
+  min(other: Money): Money {
+    return this.lessThanOrEqual(other) ? this : other;
+  }
+
+  /** The larger of this and `other` (currencies must match). */
+  max(other: Money): Money {
+    return this.greaterThanOrEqual(other) ? this : other;
+  }
+
+  /** Clamp this amount into the inclusive `[low, high]` range. */
+  clamp(low: Money, high: Money): Money {
+    return this.min(high).max(low);
   }
 
   /**
